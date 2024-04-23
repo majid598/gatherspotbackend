@@ -6,7 +6,8 @@ import { User } from "../Models/user.js";
 import ErrorHandler from "../Utils/utility.js";
 
 const newPost = TryCatch(async (req, res, next) => {
-  const { userId, title, caption, attachMent } = req.body;
+  const { title, caption, attachMent } = req.body;
+  const userId = req.user
   console.log(userId, title, caption, attachMent);
   if (!userId || !title || !caption || !attachMent)
     return next(new ErrorHandler("All Fields Are Rrequired", 404));
