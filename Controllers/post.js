@@ -7,7 +7,7 @@ import ErrorHandler from "../Utils/utility.js";
 
 const newPost = TryCatch(async (req, res, next) => {
   const { title, caption, attachMent } = req.body;
-  const userId = req.user
+  const userId = req.user;
   console.log(userId, title, caption, attachMent);
   if (!userId || !title || !caption || !attachMent)
     return next(new ErrorHandler("All Fields Are Rrequired", 404));
@@ -31,7 +31,7 @@ const newPost = TryCatch(async (req, res, next) => {
 const allPosts = TryCatch(async (req, res, next) => {
   const posts = await Post.find({})
     .sort({ createdAt: -1 })
-    .populate("user", "username fullName profile");
+    .populate("user", "username fullName profile")
   return res.status(200).json({
     success: true,
     posts,
@@ -50,7 +50,9 @@ const singlePost = TryCatch(async (req, res, next) => {
 });
 
 const likeToPost = TryCatch(async (req, res, next) => {
-  const { userId, postId } = req.body;
+  const postId = req.params.id;
+  const userId = req.user;
+  console.log(userId, postId);
   if (!userId || !postId)
     return next(new ErrorHandler("Couldn't like this post", 404));
   const post = await Post.findById(postId).populate("user", "fullName");
@@ -205,6 +207,20 @@ const singleReel = TryCatch(async (req, res, next) => {
   });
 });
 
+const deletePost = TryCatch(async (req, res, next) => {
+  const postId = req.params.id;
+  if (!postId) return next(new ErrorHandler("Couldn't delete this post", 404));
+  const post = await Post.findById(postId);
+  const user = await User.findById(req.user);
+  await post.deleteOne();
+  user.posts.pull(post._id);
+  await user.save();
+  return res.status(200).json({
+    success: true,
+    message: "Post Deleted",
+  });
+});
+
 export {
   newPost,
   allPosts,
@@ -217,4 +233,5 @@ export {
   addComment,
   singleReel,
   addToFavorites,
+  deletePost,
 };

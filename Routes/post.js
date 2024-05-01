@@ -4,6 +4,7 @@ import {
   addToFavorites,
   allPosts,
   allReels,
+  deletePost,
   likeToPost,
   likeToReel,
   newPost,
@@ -13,10 +14,11 @@ import {
   viewsPlus,
 } from "../Controllers/post.js";
 import { isAuthenticated } from "../Middlewares/auth.js";
+import { upload } from "../Middlewares/multer.js";
 
 const router = express.Router();
 
-router.post("/new", isAuthenticated, newPost);
+router.post("/new", isAuthenticated, upload, newPost);
 
 router.get("/all", isAuthenticated, allPosts);
 
@@ -24,7 +26,7 @@ router.get("/with/:id", isAuthenticated, singlePost);
 
 router.get("/reel/with/:id", isAuthenticated, singleReel);
 
-router.put("/like", isAuthenticated, likeToPost);
+router.put("/like/:id", isAuthenticated, likeToPost);
 
 router.put("/reel/:id/view", isAuthenticated, viewsPlus);
 
@@ -37,5 +39,7 @@ router.put("/reel/add/favorites", isAuthenticated, addToFavorites);
 router.post("/reel/new", isAuthenticated, uploadReal);
 
 router.get("/reel/all", isAuthenticated, allReels);
+
+router.delete("/delete/:id", isAuthenticated, deletePost);
 
 export default router;

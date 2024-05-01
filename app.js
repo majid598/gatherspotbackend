@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import { connectDb } from "./Utils/db.js";
 import { errorMiddleware } from "./Middlewares/error.js";
 import cookieParser from "cookie-parser";
+import { v2 as cloudinary } from "cloudinary";
 import cors from "cors";
 const app = express();
 
@@ -35,6 +36,13 @@ import postRoute from "./Routes/post.js";
 import chatRoute from "./Routes/chat.js";
 
 connectDb(process.env.MONGO_URI);
+
+cloudinary.config({
+  cloud_name: 'dfmcsvthn',
+  api_key: '421174188571662',
+  api_secret: 'DZfi0pptneCXwtm0_6piJj-A9Sw'
+});
+
 
 app.use("/api/v1/user", userRoute);
 app.use("/api/v1/chat", chatRoute);

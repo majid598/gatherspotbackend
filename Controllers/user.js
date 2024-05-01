@@ -67,18 +67,20 @@ const logout = TryCatch(async (req, res, next) => {
 });
 
 const editProfile = TryCatch(async (req, res, next) => {
-  const { profile, bio, websiteLink } = req.body;
+  const { profile, bio, username, fullName } = req.body;
   const userId = req.user;
   const user = await User.findById(userId);
   user.profile = profile ? profile : user.profile;
   user.bio = bio ? bio : user.bio;
-  user.websiteLink = websiteLink ? websiteLink : user.websiteLink;
+  user.username = username ? username : user.username;
+  user.fullName = fullName ? fullName : user.fullName;
   await user.save();
   return res.status(200).json({ success: true, message: "Profile updated" });
 });
 
 const followToAuser = TryCatch(async (req, res, next) => {
-  const { userId, followerId } = req.body;
+  const { userId } = req.body;
+  const followerId = req.user;
   // Find the user who is removing the follower
   const user = await User.findById(userId);
   const follower = await User.findById(followerId);

@@ -1,4 +1,6 @@
 import jwt from "jsonwebtoken";
+import { v2 as cloudinary } from "cloudinary";
+import { v4 as uuid } from "uuid";
 
 export const cookieOptions = {
   maxAge: 15 * 24 * 60 * 60 * 1000,
@@ -16,3 +18,4 @@ export const sendToken = (res, user, code, message) => {
     message,
   });
 };
+
