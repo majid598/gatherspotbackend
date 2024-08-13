@@ -1,10 +1,10 @@
-import express from "express";
-import dotenv from "dotenv";
-import { connectDb } from "./Utils/db.js";
-import { errorMiddleware } from "./Middlewares/error.js";
-import cookieParser from "cookie-parser";
 import { v2 as cloudinary } from "cloudinary";
+import cookieParser from "cookie-parser";
 import cors from "cors";
+import dotenv from "dotenv";
+import express from "express";
+import { errorMiddleware } from "./Middlewares/error.js";
+import { connectDb } from "./Utils/db.js";
 const app = express();
 
 dotenv.config({
@@ -31,9 +31,9 @@ app.get("/", (req, res) => {
   res.send("Server Is Working Perfectly");
 });
 
-import userRoute from "./Routes/user.js";
-import postRoute from "./Routes/post.js";
 import chatRoute from "./Routes/chat.js";
+import postRoute from "./Routes/post.js";
+import userRoute from "./Routes/user.js";
 
 connectDb(process.env.MONGO_URI);
 

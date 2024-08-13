@@ -26,7 +26,7 @@ router.get("/with/:id", isAuthenticated, singlePost);
 
 router.get("/reel/with/:id", isAuthenticated, singleReel);
 
-router.put("/like/:id", isAuthenticated, likeToPost);
+router.put("/like/post/:id", isAuthenticated, likeToPost);
 
 router.put("/reel/:id/view", isAuthenticated, viewsPlus);
 

@@ -8,7 +8,6 @@ import ErrorHandler from "../Utils/utility.js";
 const newPost = TryCatch(async (req, res, next) => {
   const { title, caption, attachMent } = req.body;
   const userId = req.user;
-  console.log(userId, title, caption, attachMent);
   if (!userId || !title || !caption || !attachMent)
     return next(new ErrorHandler("All Fields Are Rrequired", 404));
   const post = await Post.create({
@@ -52,7 +51,6 @@ const singlePost = TryCatch(async (req, res, next) => {
 const likeToPost = TryCatch(async (req, res, next) => {
   const postId = req.params.id;
   const userId = req.user;
-  console.log(userId, postId);
   if (!userId || !postId)
     return next(new ErrorHandler("Couldn't like this post", 404));
   const post = await Post.findById(postId).populate("user", "fullName");
@@ -108,8 +106,9 @@ const allReels = TryCatch(async (req, res, next) => {
 });
 
 const likeToReel = TryCatch(async (req, res, next) => {
-  const { userId, reelId } = req.body;
-  if (!userId || !reelId)
+  const { reelId } = req.body;
+  const userId = req.user
+  if (!reelId)
     return next(new ErrorHandler("Couldn't like this post", 404));
   const reel = await Reel.findById(reelId);
   const liker = await User.findById(userId);
