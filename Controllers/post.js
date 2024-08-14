@@ -211,9 +211,9 @@ const deletePost = TryCatch(async (req, res, next) => {
   if (!postId) return next(new ErrorHandler("Couldn't delete this post", 404));
   const post = await Post.findById(postId);
   const user = await User.findById(req.user);
-  await post.deleteOne();
   user.posts.pull(post._id);
-  await user.save();
+  await post.deleteOne()
+  await user.save
   return res.status(200).json({
     success: true,
     message: "Post Deleted",
