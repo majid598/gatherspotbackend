@@ -1,4 +1,3 @@
-import { v2 as cloudinary } from "cloudinary";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -36,13 +35,6 @@ import postRoute from "./Routes/post.js";
 import userRoute from "./Routes/user.js";
 
 connectDb(process.env.MONGO_URI);
-
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
-
 
 app.use("/api/v1/user", userRoute);
 app.use("/api/v1/chat", chatRoute);
