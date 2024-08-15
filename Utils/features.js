@@ -20,12 +20,6 @@ export const sendToken = (res, user, code, message) => {
   });
 };
 
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
-
 const getBase64 = (file) =>
   `data:${file.mimetype};base64,${file.buffer.toString("base64")}`;
 

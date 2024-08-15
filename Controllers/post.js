@@ -24,6 +24,7 @@ const newPost = TryCatch(async (req, res, next) => {
     user: userId,
     title,
     caption,
+    type,
     attachMent,
   });
   const user = await User.findById(userId);
@@ -38,12 +39,46 @@ const newPost = TryCatch(async (req, res, next) => {
 });
 
 const allPosts = TryCatch(async (req, res, next) => {
-  const posts = await Post.find({})
+  const posts = await Post.find({ type: { $in: ["Photo", "Video"] } })
     .sort({ createdAt: -1 })
     .populate("user", "username fullName profile")
   return res.status(200).json({
     success: true,
     posts,
+  });
+});
+const myAllPosts = TryCatch(async (req, res, next) => {
+  const posts = await Post.find({ user: req.user })
+    .sort({ createdAt: -1 })
+    .populate("user", "username fullName profile")
+  return res.status(200).json({
+    success: true,
+    posts,
+  });
+});
+
+const myPhotos = TryCatch(async (req, res, next) => {
+  const photos = await Post.find({ type: "Photo" })
+    .sort({ createdAt: -1 })
+  return res.status(200).json({
+    success: true,
+    photos,
+  });
+});
+const myVideos = TryCatch(async (req, res, next) => {
+  const videos = await Post.find({ type: "Video" })
+    .sort({ createdAt: -1 })
+  return res.status(200).json({
+    success: true,
+    videos,
+  });
+});
+const myReels = TryCatch(async (req, res, next) => {
+  const reels = await Post.find({ type: "Reel" })
+    .sort({ createdAt: -1 })
+  return res.status(200).json({
+    success: true,
+    reels,
   });
 });
 
@@ -106,7 +141,7 @@ const uploadReal = TryCatch(async (req, res, next) => {
 });
 
 const allReels = TryCatch(async (req, res, next) => {
-  const reels = await Reel.find()
+  const reels = await Post.find({ type: "Reel" })
     .sort({ createdAt: -1 })
     .populate("user", "username fullName profile");
   return res.status(200).json({
@@ -243,4 +278,8 @@ export {
   singleReel,
   addToFavorites,
   deletePost,
+  myPhotos,
+  myVideos,
+  myReels,
+  myAllPosts
 };

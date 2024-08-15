@@ -5,6 +5,7 @@ import express from "express";
 import { errorMiddleware } from "./Middlewares/error.js";
 import { connectDb } from "./Utils/db.js";
 const app = express();
+import { v2 as cloudinary } from 'cloudinary'
 
 dotenv.config({
   path: "./.env",
@@ -35,6 +36,12 @@ import postRoute from "./Routes/post.js";
 import userRoute from "./Routes/user.js";
 
 connectDb(process.env.MONGO_URI);
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 app.use("/api/v1/user", userRoute);
 app.use("/api/v1/chat", chatRoute);
