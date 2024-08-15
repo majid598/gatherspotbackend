@@ -38,9 +38,9 @@ import userRoute from "./Routes/user.js";
 connectDb(process.env.MONGO_URI);
 
 cloudinary.config({
-  cloud_name: 'dfmcsvthn',
-  api_key: '421174188571662',
-  api_secret: 'DZfi0pptneCXwtm0_6piJj-A9Sw'
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 

@@ -3,13 +3,23 @@ import { Notification } from "../Models/notification.js";
 import { Post } from "../Models/post.js";
 import { Reel } from "../Models/reel.js";
 import { User } from "../Models/user.js";
+import { uploadFilesToCloudinary } from "../Utils/features.js";
 import ErrorHandler from "../Utils/utility.js";
 
 const newPost = TryCatch(async (req, res, next) => {
-  const { title, caption, attachMent } = req.body;
+  const { title, caption, type } = req.body;
+  const file = req.file
   const userId = req.user;
-  if (!userId || !title || !caption || !attachMent)
+  if (!userId || !title || !caption || !file)
     return next(new ErrorHandler("All Fields Are Rrequired", 404));
+
+  const result = await uploadFilesToCloudinary([file])
+
+  const attachMent = {
+    public_id: result[0].public_id,
+    url: result[0].url
+  }
+
   const post = await Post.create({
     user: userId,
     title,

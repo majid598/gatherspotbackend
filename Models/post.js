@@ -2,6 +2,11 @@ import mongoose, { model } from "mongoose";
 
 const schema = mongoose.Schema(
   {
+    type: {
+      type: String,
+      enum: ["Photo", "Video", "Reel", "Audio"],
+      required: true
+    },
     title: {
       type: String,
       required: true,
@@ -11,8 +16,14 @@ const schema = mongoose.Schema(
       required: true,
     },
     attachMent: {
-      type: String,
-      required: true,
+      public_id: {
+        type: String,
+        required: true,
+      },
+      url: {
+        type: String,
+        required: true,
+      }
     },
     user: {
       type: mongoose.Schema.Types.ObjectId,
@@ -38,6 +49,18 @@ const schema = mongoose.Schema(
       },
     ],
     share: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+    save: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+    views: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
