@@ -14,11 +14,11 @@ import {
   viewsPlus,
 } from "../Controllers/post.js";
 import { isAuthenticated } from "../Middlewares/auth.js";
-import { upload } from "../Middlewares/multer.js";
+import { multerUpload } from "../Middlewares/multer.js";
 
 const router = express.Router();
 
-router.post("/new", isAuthenticated, upload, newPost);
+router.post("/new", isAuthenticated, multerUpload.single("file"), newPost);
 
 router.get("/all", isAuthenticated, allPosts);
 
