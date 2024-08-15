@@ -10,7 +10,7 @@ const newPost = TryCatch(async (req, res, next) => {
   const { title, caption, type } = req.body;
   const file = req.file
   const userId = req.user;
-  if (!userId || !title || !caption || !file)
+  if (!userId || !caption || !file)
     return next(new ErrorHandler("All Fields Are Rrequired", 404));
 
   const result = await uploadFilesToCloudinary([file])
