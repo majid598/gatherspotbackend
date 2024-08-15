@@ -12,6 +12,7 @@ import {
   singleStory,
   stories,
   uploadStory,
+  users,
 } from "../Controllers/user.js";
 import { isAuthenticated } from "../Middlewares/auth.js";
 const router = express.Router();
@@ -26,7 +27,9 @@ router.put("/profile/edit", isAuthenticated, editProfile);
 
 router.put("/follower/remove", isAuthenticated, removeAFollower);
 
-router.get("/me", isAuthenticated, isAuthenticated, myProfile);
+router.get("/me", isAuthenticated,  myProfile);
+
+router.get("/all", isAuthenticated, users);
 
 router.put("/follow", isAuthenticated, followToAuser);
 

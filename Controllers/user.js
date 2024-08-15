@@ -24,7 +24,6 @@ const newUser = TryCatch(async (req, res, next) => {
   });
   sendToken(res, user, 200, `Account Registration Successful`);
 });
-
 const login = TryCatch(async (req, res, next) => {
   const { email, password } = req.body;
   console.log(email, password);
@@ -39,7 +38,6 @@ const login = TryCatch(async (req, res, next) => {
 
   sendToken(res, user, 200, `Welcome Back Mr ${user.fullName}`);
 });
-
 const myProfile = TryCatch(async (req, res, next) => {
   const user = await User.findById(req.user)
     .populate("followers", "username fullName profile")
@@ -55,7 +53,6 @@ const myProfile = TryCatch(async (req, res, next) => {
     user,
   });
 });
-
 const logout = TryCatch(async (req, res, next) => {
   return res
     .status(200)
@@ -65,7 +62,6 @@ const logout = TryCatch(async (req, res, next) => {
       message: "Logged out successfully",
     });
 });
-
 const editProfile = TryCatch(async (req, res, next) => {
   const { profile, bio, username, fullName } = req.body;
   const userId = req.user;
@@ -77,7 +73,6 @@ const editProfile = TryCatch(async (req, res, next) => {
   await user.save();
   return res.status(200).json({ success: true, message: "Profile updated" });
 });
-
 const followToAuser = TryCatch(async (req, res, next) => {
   const { userId } = req.body;
   const followerId = req.user;
@@ -111,7 +106,6 @@ const followToAuser = TryCatch(async (req, res, next) => {
     message: `You Followed ${user.fullName}`,
   });
 });
-
 const getOtherUser = TryCatch(async (req, res, next) => {
   const user = await User.findById(req.params.id)
     .populate("followers", "username fullName profile")
@@ -123,7 +117,6 @@ const getOtherUser = TryCatch(async (req, res, next) => {
     user,
   });
 });
-
 const removeAFollower = TryCatch(async (req, res, next) => {
   const { userId, followerId } = req.body;
 
@@ -141,7 +134,6 @@ const removeAFollower = TryCatch(async (req, res, next) => {
 
   return res.status(200).json({ success: true, message: "Follower Removed" });
 });
-
 const uploadStory = TryCatch(async (req, res, next) => {
   const { caption, attachMent } = req.body;
   const userId = req.user;
@@ -157,7 +149,6 @@ const uploadStory = TryCatch(async (req, res, next) => {
     message: "Story Updated",
   });
 });
-
 const stories = TryCatch(async (req, res, next) => {
   const stories = await Story.find({});
 
@@ -177,6 +168,11 @@ const myNotifications = TryCatch(async (req, res, next) => {
     reciever: req.query.id,
   }).populate("sender", "fullName username profile");
   return res.status(200).json({ success: true, notifications });
+});
+
+const users = TryCatch(async (req, res, next) => {
+  const users = await User.find({ _id: { $ne: req.user } })
+  return res.status(200).json({ success: true, users });
 });
 
 cron.schedule("0 0 * * *", async () => {
@@ -203,5 +199,5 @@ export {
   uploadStory,
   stories,
   singleStory,
-  myNotifications,
+  myNotifications,users
 };

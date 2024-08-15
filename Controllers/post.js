@@ -58,7 +58,7 @@ const myAllPosts = TryCatch(async (req, res, next) => {
 });
 
 const myPhotos = TryCatch(async (req, res, next) => {
-  const photos = await Post.find({ type: "Photo" })
+  const photos = await Post.find({ type: "Photo", user: req.user })
     .sort({ createdAt: -1 })
   return res.status(200).json({
     success: true,
@@ -66,7 +66,7 @@ const myPhotos = TryCatch(async (req, res, next) => {
   });
 });
 const myVideos = TryCatch(async (req, res, next) => {
-  const videos = await Post.find({ type: "Video" })
+  const videos = await Post.find({ type: "Video", user: req.user })
     .sort({ createdAt: -1 })
   return res.status(200).json({
     success: true,
@@ -74,7 +74,7 @@ const myVideos = TryCatch(async (req, res, next) => {
   });
 });
 const myReels = TryCatch(async (req, res, next) => {
-  const reels = await Post.find({ type: "Reel" })
+  const reels = await Post.find({ type: "Reel", user: req.user })
     .sort({ createdAt: -1 })
   return res.status(200).json({
     success: true,
