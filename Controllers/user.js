@@ -2,11 +2,12 @@ import { User } from "../Models/user.js";
 import { TryCatch } from "../Middlewares/error.js";
 import ErrorHandler from "../Utils/utility.js";
 import { cookieOptions, sendToken, uploadFilesToCloudinary } from "../Utils/features.js";
-import { compare } from "bcrypt";
+import { compare, hash } from "bcrypt";
 import { Story } from "../Models/story.js";
 import cron from "node-cron";
 import { Notification } from "../Models/notification.js";
 import { v2 as cloudinary } from 'cloudinary'
+import crypto from 'crypto'
 
 const newUser = TryCatch(async (req, res, next) => {
   console.log(req.body);
@@ -236,10 +237,63 @@ const myNotifications = TryCatch(async (req, res, next) => {
   }).populate("sender", "fullName username profile");
   return res.status(200).json({ success: true, notifications });
 });
-
+const changePassword = TryCatch(async (req, res, next) => {
+  const user = await User.findById(req.user).select("+password");
+  const { oldPassword, newPassword } = req.body
+  if (!oldPassword && !newPassword) return next(new ErrorHandler("All fields Are required", 400))
+  if (!oldPassword) return next(new ErrorHandler("old password is required", 400))
+  if (!newPassword) return next(new ErrorHandler("new password is required", 400))
+  await user.changePassword(oldPassword, newPassword);
+  return res.status(200).json({ success: true, message: "password changed successfully" })
+})
 const users = TryCatch(async (req, res, next) => {
   const users = await User.find({ _id: { $ne: req.user } })
   return res.status(200).json({ success: true, users });
+});
+
+const requestPasswordReset = TryCatch(async (req, res, next) => {
+  const { email } = req.body;
+
+  if (!email) return next(new ErrorHandler("Email is required", 404))
+  const user = await User.findOne({ email });
+  if (!user) return next(new ErrorHandler("User not found", 404))
+
+  // Generate a reset token
+  const resetToken = crypto.randomBytes(32).toString("hex");
+  const resetTokenHash = crypto.createHash("sha256").update(resetToken).digest("hex");
+
+  user.resetPasswordToken = resetTokenHash;
+  user.resetPasswordExpires = Date.now() + 3600000; // 1 hour from now
+
+  await user.save();
+
+  // Send email
+  const resetUrl = `http://yourdomain.com/reset-password/${resetToken}`;
+  const message = `You are receiving this email because you (or someone else) have requested to reset your password. Please click the following link to reset your password:\n\n${resetUrl}`;
+
+  res.status(200).json({ success: true, message: "Password reset email sent.", token: resetTokenHash });
+});
+
+const resetPassword = TryCatch(async (req, res, next) => {
+  const { token } = req.params;
+  const { password } = req.body;
+
+  const user = await User.findOne({
+    resetPasswordToken: token,
+    resetPasswordExpires: { $gt: Date.now() },
+  }).select("+password");
+
+  if (!user) {
+    return res.status(400).send('Invalid or expired token.');
+  }
+
+  user.password = password;
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpires = undefined;
+
+  await user.save();
+
+  res.status(200).json({ success: true, message: "Password reset successful" });
 });
 
 cron.schedule("0 0 * * *", async () => {
@@ -271,4 +325,7 @@ export {
   editCoverPhoto,
   editProfilePhoto,
   editBio,
+  changePassword,
+  requestPasswordReset,
+  resetPassword
 };

@@ -1,6 +1,6 @@
 import mongoose, { model } from "mongoose";
 import validator from "validator";
-import { hash } from "bcrypt";
+import { hash, compare } from "bcrypt";
 
 const schema = mongoose.Schema(
   {
@@ -75,23 +75,31 @@ const schema = mongoose.Schema(
         ref: "Chat",
       },
     ],
-    notifications: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Notification",
-      },
-    ],
     websiteLink: String,
+    resetPasswordToken: String,
+    resetPasswordExpires: Date,
   },
   {
     timestamps: true,
   }
 );
 
-schema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
-
-  this.password = await hash(this.password, 10);
+schema.pre('save', async function (next) {
+  if (this.isModified('password')) {
+    this.password = await hash(this.password, 10);
+  }
+  next();
 });
+
+schema.methods.changePassword = async function (oldPassword, newPassword) {
+  // Compare the old password with the current password
+  const isMatch = await compare(oldPassword, this.password);
+  if (!isMatch) {
+    throw new Error("Old password is incorrect");
+  }
+  // Update the password and save the user
+  this.password = newPassword
+  await this.save();
+};
 
 export const User = mongoose.models.User || model("User", schema);

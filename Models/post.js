@@ -29,6 +29,14 @@ const schema = mongoose.Schema(
       ref: "User",
       required: true,
     },
+    private: {
+      type: Boolean,
+      default: false
+    },
+    draft: {
+      type: Boolean,
+      default: false
+    },
     likes: [
       {
         type: mongoose.Schema.Types.ObjectId,

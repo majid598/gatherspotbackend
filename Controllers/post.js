@@ -2,8 +2,9 @@ import { TryCatch } from "../Middlewares/error.js";
 import { Notification } from "../Models/notification.js";
 import { Post } from "../Models/post.js";
 import { User } from "../Models/user.js";
-import { uploadFilesToCloudinary } from "../Utils/features.js";
+import { shuffleArray, uploadFilesToCloudinary } from "../Utils/features.js";
 import ErrorHandler from "../Utils/utility.js";
+import { v2 as cloudinary } from 'cloudinary'
 
 const newPost = TryCatch(async (req, res, next) => {
   const { title, caption, type } = req.body;
@@ -42,7 +43,7 @@ const allPosts = TryCatch(async (req, res, next) => {
     .populate("user", "username fullName profile")
   return res.status(200).json({
     success: true,
-    posts,
+    posts: shuffleArray(posts),
   });
 });
 const myAllPosts = TryCatch(async (req, res, next) => {
@@ -123,26 +124,22 @@ const allReels = TryCatch(async (req, res, next) => {
   });
 });
 const viewsPlus = TryCatch(async (req, res, next) => {
-  const reelId = req.params.id;
-  const { userId } = req.body;
+  const post = await Post.findById(req.params.id);
+  if (!post) return next("Reel not found", 404);
 
-  const reel = await Reel.findById(reelId);
-  if (!reel) return next("Reel not found", 404);
-
-  if (!reel.viewsByUser.includes(userId)) {
-    reel.views++;
-    reel.viewsByUser.push(userId);
-    await reel.save();
+  if (!post.views.includes(req.user)) {
+    post.views.push(req.user);
+    await post.save();
   }
 
-  res.status(200).json({ message: "View count incremented successfully" });
+  res.status(200).json({ success: true });
 });
-
 const deletePost = TryCatch(async (req, res, next) => {
   const postId = req.params.id;
   if (!postId) return next(new ErrorHandler("Couldn't delete this post", 404));
   const post = await Post.findById(postId);
   const user = await User.findById(req.user);
+  await cloudinary.uploader.destroy(post?.attachMent?.public_id);
   user.posts.pull(post._id);
   await post.deleteOne()
   await user.save
@@ -163,5 +160,5 @@ export {
   myPhotos,
   myVideos,
   myReels,
-  myAllPosts
+  myAllPosts,
 };

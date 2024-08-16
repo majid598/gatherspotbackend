@@ -50,6 +50,15 @@ export const uploadFilesToCloudinary = async (files = []) => {
     }));
     return formattedResults;
   } catch (err) {
-    throw new Error("Error uploading files to cloudinary", err);
+    throw new Error(`Error uploading files to Cloudinary: ${err.message}`);
   }
+};
+
+export const shuffleArray = (array = []) => {
+  const mutableArray = [...array]; // Create a mutable copy of the array
+  for (let i = mutableArray.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [mutableArray[i], mutableArray[j]] = [mutableArray[j], mutableArray[i]]; // Shuffle the mutable array
+  }
+  return mutableArray;
 };
