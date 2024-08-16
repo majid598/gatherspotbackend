@@ -1,5 +1,6 @@
 import express from "express";
 import {
+  editBio,
   editCoverPhoto,
   editProfile,
   editProfilePhoto,
@@ -29,6 +30,7 @@ router.get("/logout", isAuthenticated, logout);
 router.put("/profile/edit", isAuthenticated, editProfile);
 router.put("/profile/edit/cover-photo", isAuthenticated, multerUpload.single("file"), editCoverPhoto);
 router.put("/profile/edit/profile-photo", isAuthenticated, multerUpload.single("file"), editProfilePhoto);
+router.put("/profile/edit/bio", isAuthenticated, editBio);
 router.put("/follower/remove", isAuthenticated, removeAFollower);
 
 router.get("/me", isAuthenticated, myProfile);

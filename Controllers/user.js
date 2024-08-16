@@ -46,7 +46,6 @@ const myProfile = TryCatch(async (req, res, next) => {
     .populate("posts", "attachMent")
     .populate("favorites", "attachMent views")
     .populate("story", "attachMent caption")
-    .populate("reels", "attachMent views")
     .sort({ createdAt: -1 });
 
   return res.status(200).json({
@@ -135,6 +134,10 @@ const editProfilePhoto = TryCatch(async (req, res, next) => {
   user.profile = profile;
   await user.save();
 
+  return res.status(200).json({ success: true, message: "Profile updated" });
+});
+const editBio = TryCatch(async (req, res, next) => {
+  await User.findByIdAndUpdate(req.user, req.body)
   return res.status(200).json({ success: true, message: "Profile updated" });
 });
 const followToAuser = TryCatch(async (req, res, next) => {
@@ -266,5 +269,6 @@ export {
   myNotifications,
   users,
   editCoverPhoto,
-  editProfilePhoto
+  editProfilePhoto,
+  editBio,
 };

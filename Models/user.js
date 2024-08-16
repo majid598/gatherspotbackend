@@ -37,7 +37,10 @@ const schema = mongoose.Schema(
       public_id: String,
       url: String,
     },
-    bio: String,
+    bio: {
+      type: String,
+      default: ""
+    },
     story: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Story",
@@ -57,7 +60,7 @@ const schema = mongoose.Schema(
     favorites: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Reel",
+        ref: "Post",
       },
     ],
     posts: [
@@ -70,12 +73,6 @@ const schema = mongoose.Schema(
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Chat",
-      },
-    ],
-    reels: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Reel",
       },
     ],
     notifications: [
