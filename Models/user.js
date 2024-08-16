@@ -29,7 +29,14 @@ const schema = mongoose.Schema(
     },
     credits: { type: Number, default: 0 },
     account: String,
-    profile: String,
+    profile: {
+      public_id: String,
+      url: String,
+    },
+    coverPhoto: {
+      public_id: String,
+      url: String,
+    },
     bio: String,
     story: {
       type: mongoose.Schema.Types.ObjectId,

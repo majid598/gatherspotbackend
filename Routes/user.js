@@ -1,6 +1,8 @@
 import express from "express";
 import {
+  editCoverPhoto,
   editProfile,
+  editProfilePhoto,
   followToAuser,
   getOtherUser,
   login,
@@ -15,6 +17,7 @@ import {
   users,
 } from "../Controllers/user.js";
 import { isAuthenticated } from "../Middlewares/auth.js";
+import { multerUpload } from "../Middlewares/multer.js"
 const router = express.Router();
 
 router.post("/new", newUser);
@@ -24,10 +27,11 @@ router.post("/login", login);
 router.get("/logout", isAuthenticated, logout);
 
 router.put("/profile/edit", isAuthenticated, editProfile);
-
+router.put("/profile/edit/cover-photo", isAuthenticated, multerUpload.single("file"), editCoverPhoto);
+router.put("/profile/edit/profile-photo", isAuthenticated, multerUpload.single("file"), editProfilePhoto);
 router.put("/follower/remove", isAuthenticated, removeAFollower);
 
-router.get("/me", isAuthenticated,  myProfile);
+router.get("/me", isAuthenticated, myProfile);
 
 router.get("/all", isAuthenticated, users);
 

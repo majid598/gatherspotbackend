@@ -53,7 +53,7 @@ const schema = mongoose.Schema(
         ref: "User",
       },
     ],
-    save: [
+    saves: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",

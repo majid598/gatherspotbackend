@@ -1,11 +1,12 @@
 import { User } from "../Models/user.js";
 import { TryCatch } from "../Middlewares/error.js";
 import ErrorHandler from "../Utils/utility.js";
-import { cookieOptions, sendToken } from "../Utils/features.js";
+import { cookieOptions, sendToken, uploadFilesToCloudinary } from "../Utils/features.js";
 import { compare } from "bcrypt";
 import { Story } from "../Models/story.js";
 import cron from "node-cron";
 import { Notification } from "../Models/notification.js";
+import { v2 as cloudinary } from 'cloudinary'
 
 const newUser = TryCatch(async (req, res, next) => {
   console.log(req.body);
@@ -63,14 +64,77 @@ const logout = TryCatch(async (req, res, next) => {
     });
 });
 const editProfile = TryCatch(async (req, res, next) => {
-  const { profile, bio, username, fullName } = req.body;
-  const userId = req.user;
-  const user = await User.findById(userId);
-  user.profile = profile ? profile : user.profile;
-  user.bio = bio ? bio : user.bio;
-  user.username = username ? username : user.username;
-  user.fullName = fullName ? fullName : user.fullName;
+  await User.findByIdAndUpdate(req.user, req.body)
+  return res.status(200).json({ success: true, message: "Profile updated" });
+});
+const editCoverPhoto = TryCatch(async (req, res, next) => {
+  const user = await User.findById(req.user);
+  const file = req.file;
+
+  if (!file) {
+    return res.status(400).json({ success: false, message: "No file uploaded" });
+  }
+
+  // Delete previous cover photo if it exists
+  if (user?.coverPhoto?.public_id) {
+    try {
+      await cloudinary.uploader.destroy(user.coverPhoto.public_id);
+      console.log('Previous photo deleted successfully');
+    } catch (error) {
+      console.error('Error deleting previous photo:', error);
+      return res.status(500).json({ success: false, message: "Error deleting previous photo" });
+    }
+  }
+
+  // Upload the new photo to Cloudinary
+  const result = await uploadFilesToCloudinary([file]);
+  if (!result || result.length === 0) {
+    return res.status(500).json({ success: false, message: "Error uploading new photo" });
+  }
+
+  // Update user's cover photo details
+  const coverPhoto = {
+    public_id: result[0].public_id,
+    url: result[0].url
+  };
+  user.coverPhoto = coverPhoto;
   await user.save();
+
+  return res.status(200).json({ success: true, message: "CoverPhoto updated", coverPhoto });
+});
+const editProfilePhoto = TryCatch(async (req, res, next) => {
+  const user = await User.findById(req.user);
+  const file = req.file;
+
+  if (!file) {
+    return res.status(400).json({ success: false, message: "No file uploaded" });
+  }
+
+  // Delete previous cover photo if it exists
+  if (user?.profile?.public_id) {
+    try {
+      await cloudinary.uploader.destroy(user.profile.public_id);
+      console.log('Previous photo deleted successfully');
+    } catch (error) {
+      console.error('Error deleting previous photo:', error);
+      return res.status(500).json({ success: false, message: "Error deleting previous photo" });
+    }
+  }
+
+  // Upload the new photo to Cloudinary
+  const result = await uploadFilesToCloudinary([file]);
+  if (!result || result.length === 0) {
+    return res.status(500).json({ success: false, message: "Error uploading new photo" });
+  }
+
+  // Update user's cover photo details
+  const profile = {
+    public_id: result[0].public_id,
+    url: result[0].url
+  };
+  user.profile = profile;
+  await user.save();
+
   return res.status(200).json({ success: true, message: "Profile updated" });
 });
 const followToAuser = TryCatch(async (req, res, next) => {
@@ -199,5 +263,8 @@ export {
   uploadStory,
   stories,
   singleStory,
-  myNotifications,users
+  myNotifications,
+  users,
+  editCoverPhoto,
+  editProfilePhoto
 };
