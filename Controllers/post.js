@@ -7,7 +7,7 @@ import ErrorHandler from "../Utils/utility.js";
 import { v2 as cloudinary } from 'cloudinary'
 
 const newPost = TryCatch(async (req, res, next) => {
-  const { title, caption, type } = req.body;
+  const { title, caption, type, draft, isPrivate } = req.body;
   const file = req.file
   const userId = req.user;
   if (!userId || !caption || !file)
@@ -26,11 +26,12 @@ const newPost = TryCatch(async (req, res, next) => {
     caption,
     type,
     attachMent,
+    draft,
+    isPrivate
   });
   const user = await User.findById(userId);
   user.posts.push(post);
   await user.save();
-  // const
 
   return res.status(200).json({
     success: true,
@@ -38,16 +39,19 @@ const newPost = TryCatch(async (req, res, next) => {
   });
 });
 const allPosts = TryCatch(async (req, res, next) => {
-  const posts = await Post.find({ type: { $in: ["Photo", "Video"] } })
-    .sort({ createdAt: -1 })
+  const posts = await Post.find({
+    type: { $in: ['Video', 'Photo'] },
+    isPrivate: false,
+    draft: false
+  }).sort({ createdAt: -1 })
     .populate("user", "username fullName profile")
   return res.status(200).json({
     success: true,
-    posts: shuffleArray(posts),
+    posts: posts,
   });
 });
 const myAllPosts = TryCatch(async (req, res, next) => {
-  const posts = await Post.find({ user: req.user })
+  const posts = await Post.find({ user: req.query.id })
     .sort({ createdAt: -1 })
     .populate("user", "username fullName profile")
   return res.status(200).json({
@@ -56,7 +60,7 @@ const myAllPosts = TryCatch(async (req, res, next) => {
   });
 });
 const myPhotos = TryCatch(async (req, res, next) => {
-  const photos = await Post.find({ type: "Photo", user: req.user })
+  const photos = await Post.find({ type: "Photo", user: req.query.id })
     .sort({ createdAt: -1 })
   return res.status(200).json({
     success: true,
@@ -64,7 +68,7 @@ const myPhotos = TryCatch(async (req, res, next) => {
   });
 });
 const myVideos = TryCatch(async (req, res, next) => {
-  const videos = await Post.find({ type: "Video", user: req.user })
+  const videos = await Post.find({ type: "Video", user: req.query.id })
     .sort({ createdAt: -1 })
   return res.status(200).json({
     success: true,
@@ -72,7 +76,7 @@ const myVideos = TryCatch(async (req, res, next) => {
   });
 });
 const myReels = TryCatch(async (req, res, next) => {
-  const reels = await Post.find({ type: "Reel", user: req.user })
+  const reels = await Post.find({ type: "Reel", user: req.query.id })
     .sort({ createdAt: -1 })
   return res.status(200).json({
     success: true,
@@ -99,19 +103,21 @@ const likeToPost = TryCatch(async (req, res, next) => {
   const user = await User.findById(post.user._id);
   if (post.likes.indexOf(userId) === -1) {
     post.likes.push(userId);
-    const notification = await Notification.create({
+    await Notification.create({
       message: `${liker.username} liked your post`,
-      sender: liker._id,
       reciever: user._id,
     });
-    user.notifications.push(notification);
+    user.notificationCount++
+    await user.save();
   } else {
     post.likes.splice(post.likes.indexOf(userId), 1);
   }
+
   await post.save();
   await user.save();
   return res.status(200).json({
     success: true,
+    message: "Liked"
   });
 });
 const allReels = TryCatch(async (req, res, next) => {

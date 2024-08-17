@@ -6,6 +6,8 @@ import {
   editProfile,
   editProfilePhoto,
   followToAuser,
+  getFollowers,
+  getFollowing,
   getOtherUser,
   login,
   logout,
@@ -25,11 +27,8 @@ import { multerUpload } from "../Middlewares/multer.js"
 const router = express.Router();
 
 router.post("/new", newUser);
-
 router.post("/login", login);
-
 router.get("/logout", isAuthenticated, logout);
-
 router.put("/profile/edit", isAuthenticated, editProfile);
 router.put("/profile/edit/cover-photo", isAuthenticated, multerUpload.single("file"), editCoverPhoto);
 router.put("/profile/edit/profile-photo", isAuthenticated, multerUpload.single("file"), editProfilePhoto);
@@ -40,11 +39,13 @@ router.get("/me", isAuthenticated, myProfile);
 router.post("/forgot/password", requestPasswordReset);
 router.post("/password/reset/:token", resetPassword);
 router.get("/all", isAuthenticated, users);
-router.put("/follow", isAuthenticated, followToAuser);
+router.get("/:id/follow", isAuthenticated, followToAuser);
 router.get("/notifications/my", isAuthenticated, myNotifications);
+router.get("/followers", isAuthenticated, getFollowers);
+router.get("/following", isAuthenticated, getFollowing);
 router.post("/story/upload", isAuthenticated, uploadStory);
 router.get("/story/all", isAuthenticated, stories);
 router.get("/story/:id", isAuthenticated, singleStory);
-router.get("/other/:id", isAuthenticated, getOtherUser);
+router.get("/get/:id", isAuthenticated, getOtherUser);
 
 export default router;

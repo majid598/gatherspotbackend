@@ -25,7 +25,7 @@ router.get("/my/videos", isAuthenticated, myVideos);
 router.put("/view/:id", isAuthenticated, viewsPlus)
 router.get("/my/reels", isAuthenticated, myReels);
 router.get("/with/:id", isAuthenticated, singlePost);
-router.put("/like/post/:id", isAuthenticated, likeToPost);
+router.get("/like/:id", isAuthenticated, likeToPost);
 router.put("/reel/:id/view", isAuthenticated, viewsPlus);
 router.get("/reel/all", isAuthenticated, allReels);
 router.delete("/delete/:id", isAuthenticated, deletePost);

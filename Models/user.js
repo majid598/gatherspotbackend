@@ -69,12 +69,10 @@ const schema = mongoose.Schema(
         ref: "Post",
       },
     ],
-    chats: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Chat",
-      },
-    ],
+    notificationCount: {
+      type: Number,
+      default: 0
+    },
     websiteLink: String,
     resetPasswordToken: String,
     resetPasswordExpires: Date,

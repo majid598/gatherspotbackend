@@ -1,4 +1,5 @@
 import { User } from "../Models/user.js";
+import { Request } from "../Models/request.js";
 import { TryCatch } from "../Middlewares/error.js";
 import ErrorHandler from "../Utils/utility.js";
 import { cookieOptions, sendToken, uploadFilesToCloudinary } from "../Utils/features.js";
@@ -42,8 +43,6 @@ const login = TryCatch(async (req, res, next) => {
 });
 const myProfile = TryCatch(async (req, res, next) => {
   const user = await User.findById(req.user)
-    .populate("followers", "username fullName profile")
-    .populate("following", "username fullName profile")
     .populate("posts", "attachMent")
     .populate("favorites", "attachMent views")
     .populate("story", "attachMent caption")
@@ -142,23 +141,22 @@ const editBio = TryCatch(async (req, res, next) => {
   return res.status(200).json({ success: true, message: "Profile updated" });
 });
 const followToAuser = TryCatch(async (req, res, next) => {
-  const { userId } = req.body;
+  const userId = req.params.id;
   const followerId = req.user;
   // Find the user who is removing the follower
   const user = await User.findById(userId);
   const follower = await User.findById(followerId);
 
-  if (!user) return next(new ErrorHandler("User not found", 404));
+  if (!user) return next(new ErrorHandler("User not found", 400));
 
   // Remove the follower from the user's followers list
   if (user.followers.indexOf(followerId) === -1) {
     user.followers.push(followerId);
     const notification = await Notification.create({
       message: `${follower.username} started following you`,
-      sender: follower._id,
       reciever: user._id,
     });
-    user.notifications.push(notification);
+    user.notificationCount++
   } else {
     user.followers.splice(user.followers.indexOf(followerId), 1);
   }
@@ -176,13 +174,27 @@ const followToAuser = TryCatch(async (req, res, next) => {
 });
 const getOtherUser = TryCatch(async (req, res, next) => {
   const user = await User.findById(req.params.id)
-    .populate("followers", "username fullName profile")
-    .populate("following", "username fullName profile")
     .populate("posts", "attachMent");
 
   return res.status(200).json({
     success: true,
     user,
+  });
+});
+const getFollowers = TryCatch(async (req, res, next) => {
+  const followers = await User.find({ following: req.query.id })
+
+  return res.status(200).json({
+    success: true,
+    followers,
+  });
+});
+const getFollowing = TryCatch(async (req, res, next) => {
+  const following = await User.find({ followers: req.query.id })
+
+  return res.status(200).json({
+    success: true,
+    following,
   });
 });
 const removeAFollower = TryCatch(async (req, res, next) => {
@@ -250,7 +262,6 @@ const users = TryCatch(async (req, res, next) => {
   const users = await User.find({ _id: { $ne: req.user } })
   return res.status(200).json({ success: true, users });
 });
-
 const requestPasswordReset = TryCatch(async (req, res, next) => {
   const { email } = req.body;
 
@@ -273,7 +284,6 @@ const requestPasswordReset = TryCatch(async (req, res, next) => {
 
   res.status(200).json({ success: true, message: "Password reset email sent.", token: resetTokenHash });
 });
-
 const resetPassword = TryCatch(async (req, res, next) => {
   const { token } = req.params;
   const { password } = req.body;
@@ -295,6 +305,80 @@ const resetPassword = TryCatch(async (req, res, next) => {
 
   res.status(200).json({ success: true, message: "Password reset successful" });
 });
+const sendFriendRequest = TryCatch(async (req, res, next) => {
+  const { userId } = req.body;
+
+  const request = await Request.findOne({
+    $or: [
+      { sender: req.user, receiver: userId },
+      { sender: userId, receiver: req.user },
+    ],
+  });
+
+  if (request) return next(new ErrorHandler("Request already sent", 400));
+
+  await Request.create({
+    sender: req.user,
+    receiver: userId,
+  });
+
+  // emitEvent(req, NEW_REQUEST, [userId]);
+
+  return res.status(200).json({
+    success: true,
+    message: "Friend Request Sent",
+  });
+});
+
+// const acceptFriendRequest = TryCatch(async (req, res, next) => {
+//   const { requestId, accept } = req.body;
+
+//   const request = await Request.findById(requestId)
+//     .populate("sender", "name")
+//     .populate("receiver", "name");
+
+//   if (!request) return next(new ErrorHandler("Request not found", 404));
+
+//   if (request.receiver._id.toString() !== req.user.toString())
+//     return next(
+//       new ErrorHandler("You are not authorized to accept this request", 401)
+//     );
+
+//   if (!accept) {
+//     await request.deleteOne();
+
+//     return res.status(200).json({
+//       success: true,
+//       message: "Friend Request Rejected",
+//     });
+//   }
+
+//     request.deleteOne(),
+
+//   // emitEvent(req, REFETCH_CHATS, members);
+
+//   return res.status(200).json({
+//     success: true,
+//     message: "Friend Request Accepted",
+//     senderId: request.sender._id,
+//   });
+// });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 cron.schedule("0 0 * * *", async () => {
   try {
@@ -327,5 +411,7 @@ export {
   editBio,
   changePassword,
   requestPasswordReset,
-  resetPassword
+  resetPassword,
+  getFollowers,
+  getFollowing,
 };

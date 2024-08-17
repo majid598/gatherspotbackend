@@ -29,7 +29,7 @@ const schema = mongoose.Schema(
       ref: "User",
       required: true,
     },
-    private: {
+    isPrivate: {
       type: Boolean,
       default: false
     },
