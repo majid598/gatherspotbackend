@@ -9,6 +9,7 @@ import cron from "node-cron";
 import { Notification } from "../Models/notification.js";
 import { v2 as cloudinary } from 'cloudinary'
 import crypto from 'crypto'
+import { GATHER_SPOT_TOKEN } from "../constants/config.js";
 
 const newUser = TryCatch(async (req, res, next) => {
   console.log(req.body);
@@ -56,7 +57,7 @@ const myProfile = TryCatch(async (req, res, next) => {
 const logout = TryCatch(async (req, res, next) => {
   return res
     .status(200)
-    .cookie("insta-token", "", { ...cookieOptions, maxAge: 0 })
+    .cookie(GATHER_SPOT_TOKEN, "", { ...cookieOptions, maxAge: 0 })
     .json({
       success: true,
       message: "Logged out successfully",
@@ -308,6 +309,10 @@ const resetPassword = TryCatch(async (req, res, next) => {
 const sendFriendRequest = TryCatch(async (req, res, next) => {
   const { userId } = req.body;
 
+  // Find the current user
+  const user = await User.findById(req.user);
+
+  // Check if a friend request already exists between the users
   const request = await Request.findOne({
     $or: [
       { sender: req.user, receiver: userId },
@@ -315,8 +320,16 @@ const sendFriendRequest = TryCatch(async (req, res, next) => {
     ],
   });
 
+  // Check if the users are already friends
+  const alreadyFriend = user.friends.includes(userId);
+
+  // If a request already exists, return an error
   if (request) return next(new ErrorHandler("Request already sent", 400));
 
+  // If the users are already friends, return an error
+  if (alreadyFriend) return next(new ErrorHandler("You are already friends", 400));
+
+  // Create a new friend request
   await Request.create({
     sender: req.user,
     receiver: userId,
@@ -329,41 +342,74 @@ const sendFriendRequest = TryCatch(async (req, res, next) => {
     message: "Friend Request Sent",
   });
 });
+const myRequests = TryCatch(async (req, res, next) => {
+  const requests = await Request.find({ receiver: req.user }).populate("sender", "username fullName profile");
 
-// const acceptFriendRequest = TryCatch(async (req, res, next) => {
-//   const { requestId, accept } = req.body;
+  return res.status(200).json({
+    success: true,
+    requests,
+  });
+});
+const acceptRequest = TryCatch(async (req, res, next) => {
+  const requestId = req.params.id
+  const { accept } = req.body;
+  const user = await User.findById(req.user)
+  const request = await Request.findById(requestId)
+    .populate("sender", "fullName")
+    .populate("receiver", "fullName");
 
-//   const request = await Request.findById(requestId)
-//     .populate("sender", "name")
-//     .populate("receiver", "name");
+  const otherUser = await User.findById(request.sender._id)
 
-//   if (!request) return next(new ErrorHandler("Request not found", 404));
+  if (!request) return next(new ErrorHandler("Request not found", 404));
 
-//   if (request.receiver._id.toString() !== req.user.toString())
-//     return next(
-//       new ErrorHandler("You are not authorized to accept this request", 401)
-//     );
+  if (request.receiver._id.toString() !== req.user.toString())
+    return next(
+      new ErrorHandler("You are not authorized to accept this request", 401)
+    );
 
-//   if (!accept) {
-//     await request.deleteOne();
+  if (!accept) {
+    await request.deleteOne();
 
-//     return res.status(200).json({
-//       success: true,
-//       message: "Friend Request Rejected",
-//     });
-//   }
+    return res.status(200).json({
+      success: true,
+      message: "Friend Request Rejected",
+    });
+  }
 
-//     request.deleteOne(),
+  // emitEvent(req, REFETCH_CHATS, members);
+  user.friends.push(request.sender._id)
+  otherUser.friends.push(req.user)
+  await request.deleteOne()
+  await user.save()
+  await otherUser.save()
 
-//   // emitEvent(req, REFETCH_CHATS, members);
+  return res.status(200).json({
+    success: true,
+    message: "Friend Request Accepted",
+    senderId: request.sender._id,
+  });
+});
+const myFriends = TryCatch(async (req, res, next) => {
+  const friends = await User.find({
+    friends: req.user,
+    _id: { $ne: req.user },  // Exclude the logged-in user
+  })
 
-//   return res.status(200).json({
-//     success: true,
-//     message: "Friend Request Accepted",
-//     senderId: request.sender._id,
-//   });
-// });
+  if (!friends.length) {
+    return next(new ErrorHandler("No users found with you as a friend", 404));
+  }
 
+  return res.status(200).json({
+    success: true,
+    friends,
+  });
+});
+const reset = TryCatch(async (req, res, next) => {
+  await User.findByIdAndUpdate(req.user, { notificationCount: 0 })
+  return res.status(200).json({
+    success: true,
+  });
+});
 
 
 
@@ -414,4 +460,9 @@ export {
   resetPassword,
   getFollowers,
   getFollowing,
+  sendFriendRequest,
+  myRequests,
+  acceptRequest,
+  myFriends,
+  reset,
 };

@@ -51,7 +51,7 @@ const allPosts = TryCatch(async (req, res, next) => {
   });
 });
 const myAllPosts = TryCatch(async (req, res, next) => {
-  const posts = await Post.find({ user: req.query.id })
+  const posts = await Post.find({ user: req.query.id, draft: false, isPrivate: false })
     .sort({ createdAt: -1 })
     .populate("user", "username fullName profile")
   return res.status(200).json({
@@ -60,7 +60,7 @@ const myAllPosts = TryCatch(async (req, res, next) => {
   });
 });
 const myPhotos = TryCatch(async (req, res, next) => {
-  const photos = await Post.find({ type: "Photo", user: req.query.id })
+  const photos = await Post.find({ type: "Photo", user: req.query.id, draft: false, isPrivate: false })
     .sort({ createdAt: -1 })
   return res.status(200).json({
     success: true,
@@ -68,7 +68,7 @@ const myPhotos = TryCatch(async (req, res, next) => {
   });
 });
 const myVideos = TryCatch(async (req, res, next) => {
-  const videos = await Post.find({ type: "Video", user: req.query.id })
+  const videos = await Post.find({ type: "Video", user: req.query.id, draft: false, isPrivate: false })
     .sort({ createdAt: -1 })
   return res.status(200).json({
     success: true,
@@ -76,11 +76,19 @@ const myVideos = TryCatch(async (req, res, next) => {
   });
 });
 const myReels = TryCatch(async (req, res, next) => {
-  const reels = await Post.find({ type: "Reel", user: req.query.id })
+  const reels = await Post.find({ type: "Reel", user: req.query.id, draft: false, isPrivate: false })
     .sort({ createdAt: -1 })
   return res.status(200).json({
     success: true,
     reels,
+  });
+});
+const myDraft = TryCatch(async (req, res, next) => {
+  const posts = await Post.find({ user: req.query.id, draft: true, isPrivate: false })
+    .sort({ createdAt: -1 })
+  return res.status(200).json({
+    success: true,
+    posts,
   });
 });
 const singlePost = TryCatch(async (req, res, next) => {
@@ -108,16 +116,19 @@ const likeToPost = TryCatch(async (req, res, next) => {
       reciever: user._id,
     });
     user.notificationCount++
+    await post.save();
     await user.save();
-  } else {
-    post.likes.splice(post.likes.indexOf(userId), 1);
+    return res.status(200).json({
+      success: true,
+      message: "Liked"
+    });
   }
+  post.likes.splice(post.likes.indexOf(userId), 1);
+  await post.save()
 
-  await post.save();
-  await user.save();
   return res.status(200).json({
     success: true,
-    message: "Liked"
+    message: "Un Liked"
   });
 });
 const allReels = TryCatch(async (req, res, next) => {
@@ -166,5 +177,5 @@ export {
   myPhotos,
   myVideos,
   myReels,
-  myAllPosts,
+  myAllPosts, myDraft
 };

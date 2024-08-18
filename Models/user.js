@@ -57,6 +57,12 @@ const schema = mongoose.Schema(
         ref: "User",
       },
     ],
+    friends: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
     favorites: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -64,6 +70,12 @@ const schema = mongoose.Schema(
       },
     ],
     posts: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Post",
+      },
+    ],
+    liked: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Post",

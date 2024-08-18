@@ -5,6 +5,7 @@ import {
   deletePost,
   likeToPost,
   myAllPosts,
+  myDraft,
   myPhotos,
   myReels,
   myVideos,
@@ -24,6 +25,7 @@ router.get("/my/photos", isAuthenticated, myPhotos);
 router.get("/my/videos", isAuthenticated, myVideos);
 router.put("/view/:id", isAuthenticated, viewsPlus)
 router.get("/my/reels", isAuthenticated, myReels);
+router.get("/my/drafts", isAuthenticated, myDraft);
 router.get("/with/:id", isAuthenticated, singlePost);
 router.get("/like/:id", isAuthenticated, likeToPost);
 router.put("/reel/:id/view", isAuthenticated, viewsPlus);

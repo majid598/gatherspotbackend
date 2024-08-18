@@ -1,6 +1,8 @@
 import jwt from "jsonwebtoken";
 import { v2 as cloudinary } from "cloudinary";
 import { v4 as uuid } from "uuid";
+import { getBase64, getSockets } from "../constants/helper.js";
+import { GATHER_SPOT_TOKEN } from "../constants/config.js";
 
 export const cookieOptions = {
   maxAge: 15 * 24 * 60 * 60 * 1000,
@@ -12,16 +14,13 @@ export const cookieOptions = {
 export const sendToken = (res, user, code, message) => {
   const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET);
 
-  return res.status(code).cookie("insta-token", token, cookieOptions).json({
+  return res.status(code).cookie(GATHER_SPOT_TOKEN, token, cookieOptions).json({
     success: true,
     user,
     message,
     token,
   });
 };
-
-const getBase64 = (file) =>
-  `data:${file.mimetype};base64,${file.buffer.toString("base64")}`;
 
 // Function to upload a file to Cloudinary
 export const uploadFilesToCloudinary = async (files = []) => {
@@ -61,4 +60,10 @@ export const shuffleArray = (array = []) => {
       [mutableArray[i], mutableArray[j]] = [mutableArray[j], mutableArray[i]]; // Shuffle the mutable array
   }
   return mutableArray;
+};
+
+export const emitEvent = (req, event, users, data) => {
+  const io = req.app.get("io");
+  const usersSocket = getSockets(users);
+  io.to(usersSocket).emit(event, data);
 };

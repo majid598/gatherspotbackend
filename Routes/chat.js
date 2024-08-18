@@ -9,14 +9,16 @@ import {
 import { isAuthenticated } from "../Middlewares/auth.js";
 const router = express.Router();
 
-router.post("/new", isAuthenticated, newChat);
+router.use(isAuthenticated)
 
-router.get("/:id", isAuthenticated, getChat);
+router.post("/new", newChat);
 
-router.get("/my/all", isAuthenticated, getChatList);
+router.get("/:id", getChat);
 
-router.post("/send/message", isAuthenticated, sendMessage);
+router.get("/my/all", getChatList);
 
-router.get("/messages/:id", isAuthenticated, getAllMessages);
+router.post("/send/message", sendMessage);
+
+router.get("/messages/:id", getAllMessages);
 
 export default router;

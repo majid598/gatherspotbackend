@@ -1,5 +1,6 @@
 import express from "express";
 import {
+  acceptRequest,
   changePassword,
   editBio,
   editCoverPhoto,
@@ -11,12 +12,16 @@ import {
   getOtherUser,
   login,
   logout,
+  myFriends,
   myNotifications,
   myProfile,
+  myRequests,
   newUser,
   removeAFollower,
   requestPasswordReset,
+  reset,
   resetPassword,
+  sendFriendRequest,
   singleStory,
   stories,
   uploadStory,
@@ -34,6 +39,11 @@ router.put("/profile/edit/cover-photo", isAuthenticated, multerUpload.single("fi
 router.put("/profile/edit/profile-photo", isAuthenticated, multerUpload.single("file"), editProfilePhoto);
 router.put("/profile/edit/bio", isAuthenticated, editBio);
 router.put("/follower/remove", isAuthenticated, removeAFollower);
+router.put("/send-request", isAuthenticated, sendFriendRequest);
+router.get("/request/my", isAuthenticated, myRequests);
+router.put("/request/accept/:id", isAuthenticated, acceptRequest);
+router.get("/friends/my", isAuthenticated, myFriends);
+router.get("/my/reset", isAuthenticated, reset);
 router.put("/change/password", isAuthenticated, changePassword);
 router.get("/me", isAuthenticated, myProfile);
 router.post("/forgot/password", requestPasswordReset);

@@ -1,21 +1,23 @@
-import mongoose, { model } from "mongoose";
+import mongoose, { Schema, model, Types } from "mongoose";
 
-const schema = mongoose.Schema(
+const schema = new Schema(
   {
-    user1: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User", // Reference to the User model for the first user
+    name: {
+      type: String,
       required: true,
     },
-    user2: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User", // Reference to the User model for the second user
-      required: true,
+    groupChat: {
+      type: Boolean,
+      default: false,
     },
-    messages: [
+    creator: {
+      type: Types.ObjectId,
+      ref: "User",
+    },
+    members: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Message",
+        type: Types.ObjectId,
+        ref: "User",
       },
     ],
   },
@@ -24,4 +26,4 @@ const schema = mongoose.Schema(
   }
 );
 
-export const Chat = mongoose.models.Chat || model("Chat", schema);
+export const Chat =mongoose.models.Chat || model("Chat", schema);

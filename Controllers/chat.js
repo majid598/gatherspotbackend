@@ -3,51 +3,112 @@ import { Chat } from "../Models/chat.js";
 import { Message } from "../Models/Message.js";
 import { User } from "../Models/user.js";
 import ErrorHandler from "../Utils/utility.js";
+import { emitEvent } from "../Utils/features.js"
+import { REFETCH_CHATS } from "../constants/events.js"
+import { getOtherMember } from "../constants/helper.js";
 
 const newChat = TryCatch(async (req, res, next) => {
   const { otherUserId } = req.body;
-  const userId = req.user;
-  if (!otherUserId) return next(new ErrorHandler("Chat Couldn't Create", 404));
-  //   const alreadyCreated = await Chat.find({ user1: userId, user2: otherUserId });
-  //   if (alreadyCreated) return next(new ErrorHandler("Chat have", 404));
-  const otherUser = await User.findById(otherUserId);
-  const user = await User.findById(userId);
-  const chat = await Chat.create({
-    user1: userId,
-    user2: otherUserId,
+  const userId = req.user; // Assuming req.user contains the authenticated user's ID
+  const user = await User.findById(req.user)
+  const otherUser = await User.findById(otherUserId)
+
+  // Check if otherUserId is provided
+  if (!otherUserId) {
+    return next(new ErrorHandler("Chat Couldn't Create: otherUserId is required", 404));
+  }
+
+  // Check if a chat between the two users already exists
+  let chat = await Chat.findOne({
+    groupChat: false,
+    members: { $all: [userId, otherUserId] },
   });
-  user.chats.push(chat);
-  otherUser.chats.push(chat);
-  await user.save();
-  await otherUser.save();
+
+  if (chat) {
+    // If chat already exists, return the existing chat
+    return res.status(200).json({
+      success: true,
+      chatAlready: true,
+      chatId: chat._id,
+    });
+  }
+
+  const members = [req.user, otherUserId]
+  // Create a new chat if none exists
+  chat = await Chat.create({
+    members,
+    name: `${user.fullName}-${otherUser.fullName}`,
+  }),
+
+    emitEvent(req, REFETCH_CHATS, members);
 
   return res.status(200).json({
     success: true,
-    message: "Message sent",
+    message: "Chat created successfully",
+    chat,
   });
 });
 
 const getChatList = TryCatch(async (req, res, next) => {
-  const { id: userId } = req.query;
-  const chats = await Chat.find({
-    $or: [{ user1: userId }, { user2: userId }],
-  })
-    .populate("user1", "username fullName profile")
-    .populate("user2", "username fullName profile");
+  const chats = await Chat.find({ members: req.user }).populate(
+    "members",
+    "fullName profile"
+  );
 
-  return res.status(200).json({ success: true, chats });
-});
+  const transformedChats = chats.map(({ _id, name, members, groupChat }) => {
+    const otherMember = getOtherMember(members, req.user);
 
-const getChat = TryCatch(async (req, res, next) => {
-  const chat = await Chat.findById(req.params.id)
-    .populate("user1", "username fullName profile")
-    .populate("user2", "username fullName profile");
+    return {
+      _id,
+      groupChat,
+      avatar: groupChat
+        ? members.slice(0, 3).map(({ profile }) => profile.url)
+        : [otherMember.profile.url],
+      name: groupChat ? name : otherMember.fullName,
+      members: members.reduce((prev, curr) => {
+        if (curr._id.toString() !== req.user.toString()) {
+          prev.push(curr._id);
+        }
+        return prev;
+      }, []),
+    };
+  });
 
   return res.status(200).json({
     success: true,
-    chat,
+    chats: transformedChats,
   });
 });
+
+const getChat = TryCatch(async (req, res, next) => {
+  const chat = await Chat.findById(req.params.id).populate(
+    "members",
+    "fullName profile"
+  );
+
+  const otherMember = getOtherMember(chat.members, req.user);
+  const transformedChat = {
+    _id: chat._id,
+    groupChat: chat.groupChat,
+    avatar: chat.groupChat
+      ? chat.members.slice(0, 3).map(({ profile }) => profile.url)
+      : otherMember.profile.url,
+    name: chat.groupChat ? chat.name : otherMember.fullName,
+    members: chat.members.reduce((prev, curr) => {
+      if (curr._id.toString() !== req.user.toString()) {
+        prev.push(curr._id);
+      }
+      return prev;
+    }, []),
+  };
+
+
+  return res.status(200).json({
+    success: true,
+    chat: transformedChat,
+  });
+})
+
 
 const sendMessage = TryCatch(async (req, res, next) => {
   const { otherUserId, content, chatId } = req.body;
