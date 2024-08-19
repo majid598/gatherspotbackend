@@ -1,23 +1,35 @@
-import mongoose, { model } from "mongoose";
+import mongoose, { Schema, model, Types } from "mongoose";
 
-const schema = mongoose.Schema(
+const schema = new Schema(
   {
+    content: String,
+    attachments: [
+      {
+        public_id: {
+          type: String,
+          required: true,
+        },
+        url: {
+          type: String,
+          required: true,
+        },
+      },
+    ],
+
     sender: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Types.ObjectId,
       ref: "User",
-    },
-    chat: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Chat",
-    },
-    content: {
-      type: String,
       required: true,
     },
-    reciever: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+    chat: {
+      type: Types.ObjectId,
+      ref: "Chat",
+      required: true,
     },
+    read: {
+      type: Boolean,
+      default: false
+    }
   },
   {
     timestamps: true,

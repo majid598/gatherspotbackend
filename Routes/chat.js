@@ -1,24 +1,50 @@
 import express from "express";
 import {
-  getAllMessages,
-  getChat,
-  getChatList,
+  addMembers,
+  deleteChat,
+  getChatDetails,
+  getMessages,
+  getMyChats,
+  getMyGroups,
+  leaveGroup,
   newChat,
-  sendMessage,
+  removeMember,
+  renameGroup,
+  sendAttachments
 } from "../Controllers/chat.js";
 import { isAuthenticated } from "../Middlewares/auth.js";
+import { attachmentsMulter } from '../Middlewares/multer.js';
 const router = express.Router();
 
 router.use(isAuthenticated)
 
 router.post("/new", newChat);
 
-router.get("/:id", getChat);
+router.get("/my", getMyChats);
 
-router.get("/my/all", getChatList);
+router.get("/my/groups", getMyGroups);
 
-router.post("/send/message", sendMessage);
+router.put("/addmembers", addMembers);
 
-router.get("/messages/:id", getAllMessages);
+router.put("/removemember", removeMember);
+
+router.delete("/leave/:id", leaveGroup);
+
+// Send Attachments
+router.post(
+  "/message",
+  attachmentsMulter,
+  sendAttachments
+);
+
+// Get Messages
+router.get("/message/:id", getMessages);
+
+// Get Chat Details, rename,delete
+router
+  .route("/:id")
+  .get(getChatDetails)
+  .put(renameGroup)
+  .delete(deleteChat);
 
 export default router;

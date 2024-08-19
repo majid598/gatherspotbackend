@@ -9,6 +9,6 @@ const multerUpload = multer({
 const singleAvatar = multerUpload.single("avatar");
 
 // Configure multiple file upload, allowing up to 4 files
-const multiple = multerUpload.array("files", 4);
+const attachmentsMulter = multerUpload.array("files", 5);
 
-export { multerUpload, singleAvatar, multiple };
+export { multerUpload, singleAvatar, attachmentsMulter };

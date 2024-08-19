@@ -1,19 +1,20 @@
 import jwt from "jsonwebtoken";
 import ErrorHandler from "../Utils/utility.js";
 import { User } from "../Models/user.js";
+import { TryCatch } from "./error.js"
 import { GATHER_SPOT_TOKEN } from "../constants/config.js"
 
-export const isAuthenticated = (req, res, next) => {
+export const isAuthenticated = TryCatch((req, res, next) => {
   const token = req.cookies[GATHER_SPOT_TOKEN] || req.header("token");
+  if (!token)
+    return next(new ErrorHandler("Please login to access this route", 401));
 
-  if (!token) return next(new ErrorHandler("Please Login first", 404));
+  const decodedData = jwt.verify(token, process.env.JWT_SECRET);
 
-  const decodeData = jwt.verify(token, process.env.JWT_SECRET);
-
-  req.user = decodeData._id;
+  req.user = decodedData._id;
 
   next();
-};
+});
 
 export const socketAuthenticator = async (err, socket, next) => {
   try {
