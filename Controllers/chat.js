@@ -440,6 +440,10 @@ const getMessages = TryCatch(async (req, res, next) => {
   });
 });
 
+const get = TryCatch(async (req, res, next) => {
+
+})
+
 export {
   newChat,
   newGroupChat,
