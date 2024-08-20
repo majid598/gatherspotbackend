@@ -3,7 +3,7 @@ import { Chat } from "../Models/chat.js";
 import { Message } from "../Models/Message.js";
 import { User } from "../Models/user.js";
 import ErrorHandler from "../Utils/utility.js";
-import { emitEvent } from "../Utils/features.js"
+import { emitEvent, uploadFilesToCloudinary } from "../Utils/features.js"
 import { REFETCH_CHATS } from "../constants/events.js"
 import { getOtherMember } from "../constants/helper.js";
 
@@ -440,8 +440,26 @@ const getMessages = TryCatch(async (req, res, next) => {
   });
 });
 
-const get = TryCatch(async (req, res, next) => {
+const getChatNameAvatar = TryCatch(async (req, res, next) => {
+  let chat = await Chat.findById(req.params.id).populate(
+    "members",
+    "fullName profile lastSeen"
+  );
 
+  const otherMember = getOtherMember(chat.members, req.user);
+
+  chat = {
+    _id: chat._id,
+    groupChat: chat.groupChat,
+    avatar: otherMember.profile.url,
+    name: otherMember.fullName,
+    members: chat.members.filter(member => member._id.toString() !== req.user.toString()),
+  };
+
+  return res.status(200).json({
+    success: true,
+    chat
+  });
 })
 
 export {
@@ -457,5 +475,6 @@ export {
   renameGroup,
   deleteChat,
   getMessages,
+  getChatNameAvatar
 };
 

@@ -3,6 +3,7 @@ import {
   addMembers,
   deleteChat,
   getChatDetails,
+  getChatNameAvatar,
   getMessages,
   getMyChats,
   getMyGroups,
@@ -29,6 +30,8 @@ router.put("/addmembers", addMembers);
 router.put("/removemember", removeMember);
 
 router.delete("/leave/:id", leaveGroup);
+
+router.get("/get/:id", getChatNameAvatar);
 
 // Send Attachments
 router.post(

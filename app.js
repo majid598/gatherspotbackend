@@ -22,6 +22,7 @@ import { Message } from "./Models/Message.js";
 import chatRoute from "./Routes/chat.js";
 import postRoute from "./Routes/post.js";
 import userRoute from "./Routes/user.js";
+import { User } from './Models/user.js';
 export const userSocketIDs = new Map();
 const onlineUsers = new Set();
 connectDb(process.env.MONGO_URI);
@@ -67,9 +68,9 @@ io.on("connection", async (socket) => {
   userSocketIDs.set(user._id.toString(), socket.id);
   onlineUsers.add(user._id.toString());
   // Notify all users that this user is now online
-    const allMembers = await getAllChatMembers(user)
-    const membersSocket = getSockets(allMembers);
-    io.to(membersSocket).emit(ONLINE_USERS, Array.from(onlineUsers));
+  const allMembers = await getAllChatMembers(user)
+  const membersSocket = getSockets(allMembers);
+  io.to(membersSocket).emit(ONLINE_USERS, Array.from(onlineUsers));
 
   // Notify all chat members that this user is now onlin
 
@@ -125,7 +126,8 @@ io.on("connection", async (socket) => {
     io.to(membersSocket).emit(ONLINE_USERS, Array.from(onlineUsers));
   });
 
-  socket.on("disconnect", () => {
+  socket.on("disconnect", async () => {
+    await User.findByIdAndUpdate(user._id, { lastSeen: Date.now() })
     userSocketIDs.delete(user._id.toString());
     onlineUsers.delete(user._id.toString());
     io.emit(ONLINE_USERS, Array.from(onlineUsers));
