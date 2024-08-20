@@ -6,7 +6,7 @@ import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import { v4 as uuid } from 'uuid';
-import { CHAT_JOINED, CHAT_LEAVED, NEW_MESSAGE, NEW_MESSAGE_ALERT, ONLINE_USERS, START_TYPING, STOP_TYPING } from './constants/events.js';
+import { CHAT_JOINED, CHAT_LEAVED, MESSAGE_READ, NEW_MESSAGE, NEW_MESSAGE_ALERT, ONLINE_USERS, START_TYPING, STOP_TYPING } from './constants/events.js';
 import { getAllChatMembers, getSockets } from './constants/helper.js';
 import { errorMiddleware } from "./Middlewares/error.js";
 import { connectDb } from "./Utils/db.js";
@@ -19,10 +19,10 @@ dotenv.config({
 import { corsOptions } from "./constants/config.js";
 import { socketAuthenticator } from "./Middlewares/auth.js";
 import { Message } from "./Models/Message.js";
+import { User } from './Models/user.js';
 import chatRoute from "./Routes/chat.js";
 import postRoute from "./Routes/post.js";
 import userRoute from "./Routes/user.js";
-import { User } from './Models/user.js';
 export const userSocketIDs = new Map();
 const onlineUsers = new Set();
 connectDb(process.env.MONGO_URI);
@@ -116,8 +116,15 @@ io.on("connection", async (socket) => {
     socket.to(membersSockets).emit(STOP_TYPING, { chatId });
   });
 
-  socket.on(CHAT_JOINED, ({ userId, members }) => {
+  socket.on(CHAT_JOINED, ({ userId, members, chatId }) => {
     const membersSocket = getSockets(members);
+    Message.updateMany(
+      { sender: { $ne: userId }, chat: chatId, status: "unread" },
+      { $set: { status: "read" } }
+    ).exec();
+
+    // Emit an event to update the client UI
+    io.to(chatId).emit(MESSAGE_READ, { chatId });
     io.to(membersSocket).emit(ONLINE_USERS, Array.from(onlineUsers));
   });
 

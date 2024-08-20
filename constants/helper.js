@@ -17,7 +17,7 @@ export const getAllChatMembers = async (user) => {
   try {
     // Retrieve all chats from the database
     const chats = await Chat.find({ members: user._id }) // Assuming 'members' field contains user IDs
-    const allMembers = chats.flatMap(chat => chat.members.map(member => member.toString()));
+    const allMembers = chats.flatMap(chat => chat.members.map(member => member.toString())).filter((member) => member.toString() !== user._id.toString());
 
     // Remove duplicates if needed
     const uniqueMembers = Array.from(new Set(allMembers))

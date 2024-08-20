@@ -28,8 +28,8 @@ const schema = new Schema(
     },
     status: {
       type: String,
-      enum: ["sent", "delivered", "read"],
-      default: "sent"
+      enum: ["unread", "read"],
+      default: "unread"
     }
   },
   {
