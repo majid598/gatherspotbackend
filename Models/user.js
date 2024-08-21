@@ -81,6 +81,12 @@ const schema = mongoose.Schema(
         ref: "Post",
       },
     ],
+    blockedUsers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
     notificationCount: {
       type: Number,
       default: 0

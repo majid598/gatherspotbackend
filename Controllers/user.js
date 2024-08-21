@@ -410,6 +410,28 @@ const reset = TryCatch(async (req, res, next) => {
     success: true,
   });
 });
+const blockUser = TryCatch(async (req, res, next) => {
+  const user = await User.findById(req.user)
+  if (!req.params.id) return next(new ErrorHandler("User not found", 400))
+  const blockedUser = await User.findById(req.params.id)
+  user.blockedUsers.push(req.params.id)
+  await user.save()
+  return res.status(200).json({
+    success: true,
+    message: `You blocked ${blockedUser.fullName}`
+  });
+});
+const unblockUser = TryCatch(async (req, res, next) => {
+  const user = await User.findById(req.user)
+  if (!req.params.id) return next(new ErrorHandler("User not found", 400))
+  const blockedUser = await User.findById(req.params.id)
+  user.blockedUsers.pull(req.params.id)
+  await user.save()
+  return res.status(200).json({
+    success: true,
+    message: `You unblocked ${blockedUser.fullName}`
+  });
+});
 
 
 
@@ -465,4 +487,6 @@ export {
   acceptRequest,
   myFriends,
   reset,
+  blockUser,
+  unblockUser,
 };

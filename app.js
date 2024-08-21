@@ -7,7 +7,7 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import { v4 as uuid } from 'uuid';
 import { CHAT_JOINED, CHAT_LEAVED, MESSAGE_READ, NEW_MESSAGE, NEW_MESSAGE_ALERT, ONLINE_USERS, START_TYPING, STOP_TYPING } from './constants/events.js';
-import { getAllChatMembers, getSockets } from './constants/helper.js';
+import { getAllChatMembers, getOtherMemberId, getSockets } from './constants/helper.js';
 import { errorMiddleware } from "./Middlewares/error.js";
 import { connectDb } from "./Utils/db.js";
 
